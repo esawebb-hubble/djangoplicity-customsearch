@@ -552,12 +552,20 @@ class CustomSearchOrdering( models.Model ):
 
     def annotate_qs( self, qs ):
         """
-        """
+            """
+        sort_field = self.field.sort_field_name()
+
         if self.field.sort_selector:
+            alias_max = f"{sort_field}__max"
+            alias_min = f"{sort_field}__min"
+
             if self.descending:
-                qs = qs.annotate( **{ str('%s__max' % self.field.sort_field_name() ): Max( self.field.sort_field_name() ) } )
+                qs = qs.annotate(**{alias_max: Max(sort_field)})
             else:
-                qs = qs.annotate( **{ str('%s__min' % self.field.sort_field_name() ): Min( self.field.sort_field_name() ) } )
+                qs = qs.annotate(**{alias_min: Min(sort_field)})
+        else:
+            order_field = f"-{sort_field}" if self.descending else sort_field
+            qs = qs.order_by(order_field)
 
         return qs
 
